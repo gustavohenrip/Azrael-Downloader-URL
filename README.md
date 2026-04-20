@@ -24,7 +24,7 @@ Direct web UI for analyzing video links and downloading browser-supported media.
 ### macOS launcher
 
 ```bash
-./start-java-springboot-angular.command
+./start.command
 ```
 
 ### Manual
@@ -32,14 +32,14 @@ Direct web UI for analyzing video links and downloading browser-supported media.
 Backend:
 
 ```bash
-cd java-springboot-angular/backend
+cd backend
 mvn spring-boot:run
 ```
 
 Frontend:
 
 ```bash
-cd java-springboot-angular/frontend
+cd frontend
 npm install
 npm start
 ```
@@ -70,7 +70,7 @@ API: `http://localhost:8080`
 ## Project
 
 ```text
-java-springboot-angular/
+.
 ├── backend/
 └── frontend/
 ```
