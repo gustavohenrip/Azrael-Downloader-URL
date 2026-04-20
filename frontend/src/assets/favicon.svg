@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Azrael Downloader">
+  <defs>
+    <linearGradient id="bg" x1="10" y1="8" x2="54" y2="56">
+      <stop offset="0" stop-color="#151a22"/>
+      <stop offset="1" stop-color="#090d12"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="28%" cy="22%" r="72%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".14"/>
+      <stop offset=".55" stop-color="#ffffff" stop-opacity=".03"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="18" y1="16" x2="46" y2="50">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#cfd6df" stop-opacity=".06"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="url(#bg)"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="16.5" fill="none" stroke="#ffffff" stroke-opacity=".08"/>
+  <rect x="9" y="9" width="46" height="46" rx="15" fill="url(#glow)"/>
+  <circle cx="32" cy="28" r="16" fill="url(#glass)" stroke="#ffffff" stroke-opacity=".14" stroke-width="1.25"/>
+  <path d="M32 17v17" fill="none" stroke="#f5f7fa" stroke-linecap="round" stroke-width="5.5"/>
+  <path d="M24.5 29.5 32 37l7.5-7.5" fill="none" stroke="#f5f7fa" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.5"/>
+  <rect x="20" y="45" width="24" height="4.5" rx="2.25" fill="#d9e1ea" fill-opacity=".92"/>
+</svg>

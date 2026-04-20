@@ -1,0 +1,148 @@
+<div class="app-shell">
+  <span class="orb orb-a"></span>
+  <span class="orb orb-b"></span>
+  <span class="orb orb-c"></span>
+
+  <header class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Video workspace</span>
+      <h1>Azrael <span>Downloader</span></h1>
+    </div>
+
+    <div class="status-strip" [class.is-ready]="statusIsReady()" [class.is-loading]="statusIsLoading()">
+      <span class="status-dot"></span>
+      <div class="status-copy">
+        <span class="status-label">System</span>
+        <strong>{{ statusLabel() }}</strong>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <form class="panel controls" [formGroup]="videoForm" (ngSubmit)="analyzeVideo()">
+      <div class="panel-head">
+        <span class="panel-kicker">Control center</span>
+        <h2>Analyze a link</h2>
+      </div>
+
+      <div class="section-block">
+        <label class="field" for="videoUrl">
+          <span class="field-label">Video link</span>
+          <input id="videoUrl" type="url" formControlName="url" placeholder="https://..." />
+        </label>
+
+        <div class="options-grid">
+          <label class="field" for="quality">
+            <span class="field-label">Quality</span>
+            <select id="quality" formControlName="quality">
+              @for (quality of qualityOptions(); track quality) {
+                <option [value]="quality">{{ quality }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="field" for="format">
+            <span class="field-label">Format</span>
+            <select id="format" formControlName="format">
+              @for (option of currentFormatOptions(); track option) {
+                <option [value]="option">{{ option }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="button-row">
+          <button
+            type="submit"
+            class="button button-primary"
+            [disabled]="isAnalyzing() || isDownloading()"
+          >
+            Analyze
+          </button>
+          <button
+            type="button"
+            class="button button-secondary"
+            [disabled]="!canStartDownload()"
+            (click)="downloadVideoInBrowser()"
+          >
+            Download
+          </button>
+          @if (isDownloading()) {
+            <button type="button" class="button button-danger" (click)="cancelDownload()">Cancel</button>
+          }
+        </div>
+
+        @if (errorMessage()) {
+          <div class="error-banner">{{ errorMessage() }}</div>
+        }
+
+        <div class="status-block">
+          <span class="status-label">Output</span>
+          <p>{{ downloadMessage() }}</p>
+        </div>
+
+        @if (isDownloading() || isAnalyzing() || progress() > 0) {
+          <div class="progress-shell" [class.is-active]="isDownloading() || isAnalyzing()">
+            <div class="progress-track">
+              <div class="progress-fill" [style.width.%]="progress()"></div>
+            </div>
+            <div class="progress-meta">
+              <span>{{ downloadStateLabel() }}</span>
+              <span>{{ progress().toFixed(1) }}%</span>
+            </div>
+          </div>
+        }
+      </div>
+    </form>
+
+    <section class="panel preview">
+      <div class="panel-head">
+        <span class="panel-kicker">Media preview</span>
+        <h2>Preview</h2>
+      </div>
+
+      <div class="preview-stage">
+        @if (analysis(); as video) {
+          @if (video.thumbnailUrl && !thumbnailError()) {
+              <img
+                class="thumbnail"
+                [class.is-loaded]="thumbnailLoaded()"
+                [src]="video.thumbnailUrl"
+                [alt]="video.title ? 'Thumbnail for ' + video.title : 'Video thumbnail'"
+              (load)="thumbnailLoaded.set(true)"
+              (error)="onThumbnailError()"
+            />
+          } @else {
+          <div class="thumbnail placeholder">
+              <span class="placeholder-brand">Azrael</span>
+              <p>No thumbnail available.</p>
+            </div>
+          }
+
+          <div class="preview-meta">
+            <h3>{{ video.title || 'Untitled video' }}</h3>
+            <dl class="preview-details">
+              <div>
+                <dt>Duration</dt>
+                <dd>{{ durationLabel(video.durationSeconds) }}</dd>
+              </div>
+              <div>
+                <dt>Views</dt>
+                <dd>{{ viewsLabel(video.viewCount) }}</dd>
+              </div>
+              <div>
+                <dt>Uploader</dt>
+                <dd>{{ video.uploader || 'Unknown uploader' }}</dd>
+              </div>
+            </dl>
+          </div>
+        } @else {
+          <div class="preview-empty">
+            <span class="placeholder-brand">Azrael</span>
+            <h3>No preview yet.</h3>
+          </div>
+        }
+      </div>
+    </section>
+  </main>
+</div>

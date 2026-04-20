@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: Azrael Downloader
+
+server:
+  port: 8080
+
+app:
+  download-root: ./storage/downloads
+  ytdlp-command: yt-dlp
+  ffmpeg-command: ffmpeg
+  frontend-origin: http://localhost:4200
+  emitter-timeout: 30m
+
+logging:
+  level:
+    root: INFO
+    com.pvdpro: INFO
