@@ -8,19 +8,17 @@ export class BrowserDownloadService {
   async download(url: string, filename: string, onProgress?: (progress: number) => void, signal?: AbortSignal): Promise<void> {
     const response = await this.tryFetch(url, signal);
 
-    if (response && this.canUseFilePicker() && response.body) {
+    if (response === null) {
+      throw new Error('Download blocked by CORS policy. Use a direct download link.');
+    }
+
+    if (this.canUseFilePicker() && response.body) {
       await this.saveWithPicker(response, filename, onProgress, signal);
       return;
     }
 
-    if (response) {
-      const blob = await response.blob();
-      this.triggerBlobDownload(blob, filename);
-      onProgress?.(100);
-      return;
-    }
-
-    this.triggerDirectDownload(url, filename);
+    const blob = await response.blob();
+    this.triggerBlobDownload(blob, filename);
     onProgress?.(100);
   }
 

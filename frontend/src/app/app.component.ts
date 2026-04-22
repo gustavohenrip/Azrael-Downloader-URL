@@ -407,20 +407,20 @@ export class AppComponent {
 
     if (error && typeof error === 'object') {
       const candidate = error as { error?: unknown; message?: string; statusText?: string };
-      if (typeof candidate.message === 'string' && candidate.message.trim()) {
-        return candidate.message;
-      }
-      if (typeof candidate.statusText === 'string' && candidate.statusText.trim()) {
-        return candidate.statusText;
-      }
-      if (typeof candidate.error === 'string' && candidate.error.trim()) {
-        return candidate.error;
-      }
       if (candidate.error && typeof candidate.error === 'object') {
         const nested = candidate.error as { message?: string };
         if (typeof nested.message === 'string' && nested.message.trim()) {
           return nested.message;
         }
+      }
+      if (typeof candidate.error === 'string' && candidate.error.trim()) {
+        return candidate.error;
+      }
+      if (typeof candidate.message === 'string' && candidate.message.trim()) {
+        return candidate.message;
+      }
+      if (typeof candidate.statusText === 'string' && candidate.statusText.trim()) {
+        return candidate.statusText;
       }
     }
 
