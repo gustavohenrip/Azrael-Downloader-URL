@@ -1,54 +1,48 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
 FRONTEND_DIR="$ROOT_DIR/frontend"
-LOG_DIR="$HOME/Library/Logs/AzraelDownloader"
+LOG_DIR="$HOME/.local/share/azrael-downloader/logs"
 BACKEND_LOG="$LOG_DIR/backend.log"
 FRONTEND_LOG="$LOG_DIR/frontend.log"
 
-export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
-
-JAVA21_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
-if [[ -d "$JAVA21_HOME" ]]; then
-  export JAVA_HOME="$JAVA21_HOME"
-  export PATH="$JAVA_HOME/bin:$PATH"
-fi
-
-install_brew_pkg() {
+install_pkg() {
   local pkg="$1"
-  local cmd="${2:-$1}"
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    echo "Installing $pkg via Homebrew..."
-    brew install "$pkg"
+  if command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get install -y "$pkg"
+  elif command -v dnf >/dev/null 2>&1; then
+    sudo dnf install -y "$pkg"
+  elif command -v pacman >/dev/null 2>&1; then
+    sudo pacman -S --noconfirm "$pkg"
+  elif command -v zypper >/dev/null 2>&1; then
+    sudo zypper install -y "$pkg"
+  else
+    echo "Cannot install $pkg: no supported package manager found."
+    exit 1
   fi
 }
 
-if ! command -v brew >/dev/null 2>&1; then
-  echo "Homebrew not found. Installing..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
+ensure_cmd() {
+  local cmd="$1"
+  local pkg="${2:-$1}"
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Installing $pkg..."
+    install_pkg "$pkg"
+  fi
+}
 
-install_brew_pkg "openjdk@21" "java"
-install_brew_pkg "maven" "mvn"
-install_brew_pkg "node" "node"
-install_brew_pkg "yt-dlp" "yt-dlp"
-install_brew_pkg "ffmpeg" "ffmpeg"
-
-if [[ -z "${JAVA_HOME:-}" ]]; then
-  export JAVA_HOME="$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home"
-  export PATH="$JAVA_HOME/bin:$PATH"
-fi
+ensure_cmd java openjdk-21-jdk
+ensure_cmd mvn maven
+ensure_cmd node nodejs
+ensure_cmd npm npm
+ensure_cmd yt-dlp yt-dlp
+ensure_cmd ffmpeg ffmpeg
 
 cleanup() {
-  if [[ -n "${FRONTEND_PID:-}" ]] && kill -0 "$FRONTEND_PID" 2>/dev/null; then
-    kill "$FRONTEND_PID" 2>/dev/null || true
-  fi
-  if [[ -n "${BACKEND_PID:-}" ]] && kill -0 "$BACKEND_PID" 2>/dev/null; then
-    kill "$BACKEND_PID" 2>/dev/null || true
-  fi
+  [[ -n "${FRONTEND_PID:-}" ]] && kill "$FRONTEND_PID" 2>/dev/null || true
+  [[ -n "${BACKEND_PID:-}" ]] && kill "$BACKEND_PID" 2>/dev/null || true
 }
 
 trap cleanup EXIT INT TERM
@@ -106,6 +100,8 @@ echo "Logs:     $LOG_DIR"
 echo "Press Ctrl+C to stop both services."
 echo
 
-open http://localhost:4200
+if command -v xdg-open >/dev/null 2>&1; then
+  xdg-open http://localhost:4200 &
+fi
 
 tail -n +1 -f "$BACKEND_LOG" "$FRONTEND_LOG"

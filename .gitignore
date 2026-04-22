@@ -93,6 +93,9 @@ backend/storage/
 storage/
 output/
 .playwright-cli/
+.playwright-mcp/
+.claude/
+CLAUDE.md
 
 # Local package manager caches
 .npm/
