@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ public class YtDlpService {
                 "--no-playlist",
                 "--no-warnings",
                 "--no-color",
+                "--",
                 targetUrl
         ));
 
@@ -202,7 +204,20 @@ public class YtDlpService {
         if (url == null || url.isBlank()) {
             throw new IllegalArgumentException("URL is required");
         }
-        return url.trim();
+        String trimmed = url.trim();
+        try {
+            URI uri = URI.create(trimmed);
+            String scheme = uri.getScheme();
+            if (!"http".equals(scheme) && !"https".equals(scheme)) {
+                throw new IllegalArgumentException("URL must use http or https");
+            }
+            if (uri.getHost() == null || uri.getHost().isBlank()) {
+                throw new IllegalArgumentException("URL must have a valid host");
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid URL: " + e.getMessage());
+        }
+        return trimmed;
     }
 
     private String valueOrEmpty(String value) {

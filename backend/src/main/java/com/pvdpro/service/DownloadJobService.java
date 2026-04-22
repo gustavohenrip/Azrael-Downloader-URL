@@ -21,6 +21,7 @@ import jakarta.annotation.PreDestroy;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,11 +33,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,6 +47,8 @@ import java.util.regex.Pattern;
 public class DownloadJobService {
 
     private static final Pattern PROGRESS_PATTERN = Pattern.compile("(\\d+(?:\\.\\d+)?)%");
+    private static final Pattern FORMAT_ID_PATTERN = Pattern.compile("^[A-Za-z0-9_+\\-*\\[\\]=<>:./,]{1,128}$");
+    private static final AtomicInteger THREAD_COUNTER = new AtomicInteger();
 
     private final AppProperties properties;
     private final FilePathResolver filePathResolver;
@@ -53,12 +58,17 @@ public class DownloadJobService {
     public DownloadJobService(AppProperties properties, FilePathResolver filePathResolver) {
         this.properties = properties;
         this.filePathResolver = filePathResolver;
-        this.executorService = Executors.newCachedThreadPool(runnable -> {
-            Thread thread = new Thread(runnable);
-            thread.setDaemon(true);
-            thread.setName("download-job-" + thread.threadId());
-            return thread;
-        });
+        this.executorService = new ThreadPoolExecutor(
+                0, 4, 60L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(16),
+                runnable -> {
+                    Thread thread = new Thread(runnable);
+                    thread.setDaemon(true);
+                    thread.setName("download-job-" + THREAD_COUNTER.incrementAndGet());
+                    return thread;
+                },
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
     }
 
     public DownloadStartResponse start(DownloadRequest request) {
@@ -252,6 +262,7 @@ public class DownloadJobService {
         command.add("--format");
         command.add(plan.formatSelector());
         command.addAll(plan.extraArgs());
+        command.add("--");
         command.add(requireUrl(request.url()));
         return command;
     }
@@ -306,6 +317,9 @@ public class DownloadJobService {
         String format = normalizeOrDefault(request.format(), "mp4");
 
         if (selectedFormatId != null) {
+            if (!FORMAT_ID_PATTERN.matcher(selectedFormatId).matches()) {
+                throw new IllegalArgumentException("Invalid format ID");
+            }
             return new DownloadPlan(selectedFormatId, List.of(), null);
         }
 
@@ -382,6 +396,18 @@ public class DownloadJobService {
         String trimmed = trimToNull(url);
         if (trimmed == null) {
             throw new IllegalArgumentException("URL is required");
+        }
+        try {
+            URI uri = URI.create(trimmed);
+            String scheme = uri.getScheme();
+            if (!"http".equals(scheme) && !"https".equals(scheme)) {
+                throw new IllegalArgumentException("URL must use http or https");
+            }
+            if (uri.getHost() == null || uri.getHost().isBlank()) {
+                throw new IllegalArgumentException("URL must have a valid host");
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid URL: " + e.getMessage());
         }
         return trimmed;
     }
