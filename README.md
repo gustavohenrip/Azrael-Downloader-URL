@@ -21,11 +21,29 @@ Direct web UI for analyzing video links and downloading browser-supported media.
 
 ## Run
 
-### macOS launcher
+### macOS
 
 ```bash
 ./start.command
 ```
+
+Auto-installs dependencies via Homebrew if missing.
+
+### Linux
+
+```bash
+chmod +x start.sh && ./start.sh
+```
+
+Supports apt, dnf, pacman, and zypper.
+
+### Windows
+
+```powershell
+./start.ps1
+```
+
+Auto-installs dependencies via winget.
 
 ### Manual
 
@@ -45,7 +63,7 @@ npm start
 ```
 
 App: `http://localhost:4200`  
-API: `http://localhost:8080`
+API: `http://127.0.0.1:8080`
 
 ## What It Does
 
