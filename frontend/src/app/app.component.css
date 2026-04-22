@@ -295,6 +295,11 @@ select:focus {
   cursor: not-allowed;
 }
 
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .button-primary {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(208, 215, 226, 0.82));
   color: #0d1218;

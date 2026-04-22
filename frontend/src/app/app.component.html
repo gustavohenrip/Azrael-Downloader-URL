@@ -73,17 +73,23 @@
         </div>
 
         @if (errorMessage()) {
-          <div class="error-banner">{{ errorMessage() }}</div>
+          <div class="error-banner" role="alert">{{ errorMessage() }}</div>
         }
 
-        <div class="status-block">
+        <div class="status-block" aria-live="polite">
           <span class="status-label">Output</span>
           <p>{{ downloadMessage() }}</p>
         </div>
 
         @if (isDownloading() || isAnalyzing() || progress() > 0) {
           <div class="progress-shell" [class.is-active]="isDownloading() || isAnalyzing()">
-            <div class="progress-track">
+            <div
+              class="progress-track"
+              role="progressbar"
+              [attr.aria-valuenow]="progress()"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
               <div class="progress-fill" [style.width.%]="progress()"></div>
             </div>
             <div class="progress-meta">
